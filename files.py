@@ -72,10 +72,29 @@ def catalog():
     data = g.db.execute(QRY).fetchall()
     return data
 
+def _check_user_id(user, query):
+    uid = g.db.execute("select user_id from files where id = ? and user_id = ?",(query,user)).fetchall()
+    if len(uid) == 0:
+        return False
+    elif len(uid) > 0:
+        return True
+
+@bp.route("/delete/<int:id>", methods = ["GET"])
+def delete(id):
+    if _check_user_id(g.user_id, id):
+        g.db.execute("delete from files where id = ?", (id,))
+        g.db.commit()
+        flash("Deleted query")
+        g.catalog = catalog()
+        return redirect(url_for('files.upload'))
+        #render_template('files/upload.html', catalog = g.catalog)
+    else:
+        flash("Query does not belong to logged in user")
+        g.catalog = catalog()
+        return redirect(url_for('files.upload'))
 
 @bp.route("/preview/<int:id>", methods = ["GET"])
 def preview(id):
-    print(type(id))
     data = g.db.execute("select line_nr, body from lines where file_id = ? limit 10",(id,)).fetchall()
     print(data)
     return render_template('files/preview.html',data = data)

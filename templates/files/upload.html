@@ -41,7 +41,7 @@
       <td>{{i.lines}}</td>
       <td hidden>
         <a class="btn" type="button" name="button" href="{{url_for('files.preview', id = i.id)}}">Preview</a>
-        <a class="btn" type="button" name="button">Load</a>
+        <a class="btn" type="button" name="button" href="{{url_for('files.delete', id = i.id)}}">Delete</a>
       </td>
     </tr>
     {%endfor%}
