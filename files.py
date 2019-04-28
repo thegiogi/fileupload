@@ -24,7 +24,7 @@ def upload():
 def register_name(name):
     user_id = g.user_id
     if "db" not in g:
-        g.db = get_db
+        g.db = get_db()
     g.db.execute("insert into files (user_id, filename) values (?,?)",(user_id, name))
     id = g.db.execute("SELECT last_insert_rowid() ").fetchone()[0]
     print(id)
@@ -79,11 +79,18 @@ def _check_user_id(user, query):
     elif len(uid) > 0:
         return True
 
+
+def _delete_file_by_id(id):
+    if "db" not in g:
+        g.db = get_db()
+    g.db.execute("delete from files where id = ?", (id,))
+    g.db.commit()
+
 @bp.route("/delete/<int:id>", methods = ["GET"])
+@login_required
 def delete(id):
     if _check_user_id(g.user_id, id):
-        g.db.execute("delete from files where id = ?", (id,))
-        g.db.commit()
+        _delete_file_by_id(id)
         flash("Deleted query")
         g.catalog = catalog()
         return redirect(url_for('files.upload'))
@@ -94,6 +101,7 @@ def delete(id):
         return redirect(url_for('files.upload'))
 
 @bp.route("/preview/<int:id>", methods = ["GET"])
+@login_required
 def preview(id):
     data = g.db.execute("select line_nr, body from lines where file_id = ? limit 10",(id,)).fetchall()
     print(data)
